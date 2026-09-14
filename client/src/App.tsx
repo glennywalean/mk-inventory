@@ -21,6 +21,9 @@ function App() {
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
 
+  const [archivedItems, setArchivedItems] = useState<Item[]>([]);
+  const [showArchived, setShowArchived] = useState(false);
+
   // --- Function to fetch items from the backend API --- //
   async function loadItems() {
     const res = await fetch('http://localhost:3000/api/items'); // Fetch the items from the backend API
@@ -71,6 +74,29 @@ function App() {
     loadItems(); // Refresh the list after a successful archive operations
   }
 
+  // --- Function to handle Unarchive Button --- //
+  async function handleUnarchive(itemId: string) {
+    const res = await fetch(`http://localhost:3000/api/items/${itemId}/unarchive`, {
+      method: 'PATCH',
+    });
+
+    if (!res.ok) {
+      const body = await res.json();
+      setError(body.error ?? 'Something went wrong');
+      return;
+    }
+
+    loadArchivedItems(); // refresh everytime the function is triggered
+  }
+
+  async function loadArchivedItems() {
+    const res = await fetch('http://localhost:3000/api/items?archived=true', { // Fetch all the archived items
+      cache: 'no-store', // to always get a fresh data instead of cached data
+    });
+    const data = await res.json();
+    setArchivedItems(data);
+  }
+
   async function handleUpdateQuantity(id: string, newQuantity: number) {
     const res = await fetch(`http://localhost:3000/api/items/${id}`, {
       method: 'PATCH',
@@ -87,14 +113,12 @@ function App() {
     loadItems(); // Refresh the list after a successful update}
   }
 
-
-
-
-
-
-
-
-
+  function handleToggleArchived() {
+    if (!showArchived) {
+      loadArchivedItems(); // only fetch when opening the view
+    }
+    setShowArchived(!showArchived);
+  }
 
   useEffect(() => {
     loadItems(); // Run the data fetching function
@@ -106,8 +130,6 @@ function App() {
   }
 
   return (
-
-    // --- Create New Item Form --- //
     <div>
       <input
         placeholder="Item name"
@@ -142,6 +164,27 @@ function App() {
             </li>
           ))}
         </ul>
+      )}
+      
+      <button onClick={handleToggleArchived}>
+        {showArchived ? 'Hide archived items' : 'Show archived items'}
+      </button>
+      {showArchived && (
+        <div>
+          <h2>Archived Items</h2>
+          {archivedItems.length === 0 ? (
+            <p>No archived items.</p>
+          ) : (
+            <ul>
+              {archivedItems.map((item) => (
+                <li key={item.id}>
+                  {item.name} — {(item.priceCents / 100).toFixed(2)}
+                  <button onClick={() => handleUnarchive(item.id)}>Unarchive</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
 

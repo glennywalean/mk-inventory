@@ -8,15 +8,19 @@ export const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
+// --- Fetch all items from the database --- //
 app.get('/api/items', async (req, res) => { // Fetch all items from the database
+  const showArchived = req.query.archived === 'true'; // Check all archived items
+
   const items = await prisma.item.findMany({
-    where: { isActive: true },
+    where: { isActive: !showArchived }, // Filter items based on the isActive status
     orderBy: { name: 'asc' }
   });
   res.json(items);
 });
 
-app.post('/api/items', async (req, res) => { // Create a new item in the database with validation checks for required fields and data types
+// --- Create a new item with validations --- //
+app.post('/api/items', async (req, res) => {
   const { name, description, priceCents, quantity } = req.body;
 
   if (!name || typeof name !== 'string') { // Name has to be a non-empty string
@@ -35,7 +39,8 @@ app.post('/api/items', async (req, res) => { // Create a new item in the databas
   res.json(item); // Return the new item as a JSON response
 });
 
-app.patch('/api/items/:id', async (req, res) => { // Update the quantity of an item in the database
+// --- Update existing item's quantity--- //
+app.patch('/api/items/:id', async (req, res) => { //
   const { quantity } = req.body;
 
   if (typeof quantity !== 'number' || quantity < 0) { // Validate that quantity is a non-negative number
@@ -53,7 +58,8 @@ app.patch('/api/items/:id', async (req, res) => { // Update the quantity of an i
   }
 });
 
-app.patch('/api/items/:id/archive', async (req, res) => { // Archive an item in the database by setting isActive to false
+// --- Archive item --- //
+app.patch('/api/items/:id/archive', async (req, res) => {
   try {
     const item = await prisma.item.update({
       where: { id: req.params.id },
@@ -65,7 +71,8 @@ app.patch('/api/items/:id/archive', async (req, res) => { // Archive an item in 
   }
 });
 
-app.patch('/api/items/:id/unarchive', async (req, res) => { // Unarchive an item in the database by setting isActive to true
+// --- Unarchive item --- //
+app.patch('/api/items/:id/unarchive', async (req, res) => {
   try {
     const item = await prisma.item.update({
       where: { id: req.params.id },
