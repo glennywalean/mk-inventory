@@ -113,30 +113,48 @@ function App() {
       <Route
         path='/'
         element={
-          <div>
-            <CreateItemForm
-              name={name}
-              price={price}
-              quantity={quantity}
-              error={error}
-              onNameChange={setName}
-              onPriceChange={setPrice}
-              onQuantityChange={setQuantity}
-              onSubmit={handleCreate}
-            />
+          <div className="min-h-screen bg-neutral-50">
+            <div className="mx-auto max-w-lg p-4">
+              <CreateItemForm
+                name={name}
+                price={price}
+                quantity={quantity}
+                error={error}
+                onNameChange={setName}
+                onPriceChange={setPrice}
+                onQuantityChange={setQuantity}
+                onSubmit={handleCreate}
+              />
 
-            <button onClick={() => setEditMode(!editMode)}>
-              {editMode ? 'Done' : 'Edit'}
-            </button>
+              <div className="flex items-center justify-between">
+                <h2 className="mb-3 text-lg font-semibold text-neutral-900">Menu</h2>
 
-            <ItemList
-              items={items}
-              editMode={editMode}
-              onUpdateQuantity={handleUpdateQuantity}
-              onArchive={handleArchive}
-            />
+                <button
+                  onClick={() => setEditMode(!editMode)}
+                  className={
+                    editMode
+                      ? 'mb-3 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white active:bg-neutral-700'
+                      : 'mb-3 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100'
+                  }
+                >
+                  {editMode ? 'Done' : 'Edit'}
+                </button>
+              </div>
 
-            <Link to="/archived">View archived items</Link>
+              <ItemList
+                items={items}
+                editMode={editMode}
+                onUpdateQuantity={handleUpdateQuantity}
+                onArchive={handleArchive}
+              />
+
+              <Link
+                to="/archived"
+                className="mt-4 block rounded-md border border-neutral-300 px-4 py-2 text-center text-sm font-medium text-neutral-700 active:bg-neutral-100"
+              >
+                View archived items
+              </Link>
+            </div>
          </div>
         }
       />

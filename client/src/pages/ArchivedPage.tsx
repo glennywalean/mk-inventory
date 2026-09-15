@@ -9,9 +9,14 @@ type ArchivedPageProps = {
 
 function ArchivedPage({ items, onUnarchive }: ArchivedPageProps) {
   return (
-    <div>
-      <Link to="/">Back to items</Link> {/* go Home */}
-      <ArchivedItemList items={items} onUnarchive={onUnarchive} />
+    <div className="min-h-screen bg-neutral-50">
+      <div className="mx-auto max-w-lg p-4">
+        <Link to="/" className="mb-4 inline-block text-sm text-neutral-600 underline">
+          ← Back to items
+        </Link>
+
+        <ArchivedItemList items={items} onUnarchive={onUnarchive} />
+      </div>
     </div>
   );
 }
