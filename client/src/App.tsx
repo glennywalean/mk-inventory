@@ -69,6 +69,7 @@ function App() {
     }
 
     loadItems();
+    loadArchivedItems();
   }
 
   // --- Function to UnArchive Item --- //
@@ -81,6 +82,7 @@ function App() {
       return;
     }
 
+    loadItems();
     loadArchivedItems();
   }
 
@@ -99,6 +101,7 @@ function App() {
 
   useEffect(() => { // when loaded, run this
     loadItems();
+    loadArchivedItems();
   }, []);
 
   if (loading) {

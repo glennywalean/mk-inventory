@@ -24,25 +24,41 @@ function CreateItemForm({
   onSubmit,
 }: CreateItemFormProps) {
   return (
-    <div>
+    <div className="mb-4 space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
       <input
         placeholder="Item name"
         value={name}
         onChange={(e) => onNameChange(e.target.value)}
+        className="w-full rounded-md border border-neutral-300 px-3 py-2 text-base"
       />
-      <input
-        placeholder="Price"
-        value={price}
-        onChange={(e) => onPriceChange(e.target.value)}
-      />
-      <input
-        placeholder="Quantity"
-        value={quantity}
-        onChange={(e) => onQuantityChange(e.target.value)}
-      />
-      <button onClick={onSubmit}>Add item</button>
 
-      {error && <p>{error}</p>}
+      <div className="flex gap-3">
+        <input
+          placeholder="Price"
+          value={price}
+          onChange={(e) => onPriceChange(e.target.value)}
+          inputMode="decimal"
+          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-base"
+        />
+        <input
+          placeholder="Quantity"
+          value={quantity}
+          onChange={(e) => onQuantityChange(e.target.value)}
+          inputMode="numeric"
+          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-base"
+        />
+      </div>
+
+
+
+      <button
+      onClick={onSubmit}
+      className="w-full rounded-md bg-neutral-900 py-3 font-medium text-white active:bg-neutral-700"
+      >
+        Add item
+      </button>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }
