@@ -1,6 +1,6 @@
 import type { Item } from './types'; //match names with the backend model
 
-const BASE_URL = 'http://localhost:3000/api/items';
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/items`;
 
 // Fetches active items.
 export async function getItems(): Promise<Item[]> {
