@@ -1,4 +1,4 @@
-import type { Item } from './types'; //
+import type { Item } from './types'; //match names with the backend model
 
 const BASE_URL = 'http://localhost:3000/api/items';
 
@@ -10,7 +10,7 @@ export async function getItems(): Promise<Item[]> {
 
 // Fetches archived items.
 export async function getArchivedItems(): Promise<Item[]> {
-  const res = await fetch(`${BASE_URL}?archived=true`, { cache: 'no-store' });
+  const res = await fetch(`${BASE_URL}?archived=true`, { cache: 'no-store' }); //archived items query
   return res.json();
 }
 

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Routes, Route, Link} from 'react-router-dom';
+import ArchivedPage from './pages/ArchivedPage';
 import type { Item } from './types';
 import {
   getItems,
@@ -10,33 +12,31 @@ import {
 } from './api';
 import CreateItemForm from './components/CreateItemForm';
 import ItemList from './components/ItemList';
-import ArchivedItemList from './components/ArchivedItemList';
 
 function App() {
-  // --- List States --- //
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  // --- Form States --- //
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
-
   const [archivedItems, setArchivedItems] = useState<Item[]>([]);
-  const [showArchived, setShowArchived] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
+  // --- Function to Load Items --- //
   async function loadItems() {
     const data = await getItems();
     setItems(data);
     setLoading(false);
   }
 
+  // --- Function to Load Archived Items --- //
   async function loadArchivedItems() {
     const data = await getArchivedItems();
     setArchivedItems(data);
   }
 
+  // --- Function Create New Item --- //
   async function handleCreate() {
     setError('');
 
@@ -58,6 +58,7 @@ function App() {
     loadItems();
   }
 
+  // --- Function to Archive Item --- //
   async function handleArchive(itemId: string) {
     const res = await archiveItem(itemId);
 
@@ -70,6 +71,7 @@ function App() {
     loadItems();
   }
 
+  // --- Function to UnArchive Item --- //
   async function handleUnarchive(itemId: string) {
     const res = await unarchiveItem(itemId);
 
@@ -82,13 +84,7 @@ function App() {
     loadArchivedItems();
   }
 
-  function handleToggleArchived() {
-    if (!showArchived) {
-      loadArchivedItems();
-    }
-    setShowArchived(!showArchived);
-  }
-
+  // --- Function to Update Quantity --- //
   async function handleUpdateQuantity(id: string, newQuantity: number) {
     const res = await updateQuantity(id, newQuantity);
 
@@ -101,7 +97,7 @@ function App() {
     loadItems();
   }
 
-  useEffect(() => {
+  useEffect(() => { // when loaded, run this
     loadItems();
   }, []);
 
@@ -110,32 +106,46 @@ function App() {
   }
 
   return (
-    <div>
-      <CreateItemForm
-        name={name}
-        price={price}
-        quantity={quantity}
-        error={error}
-        onNameChange={setName}
-        onPriceChange={setPrice}
-        onQuantityChange={setQuantity}
-        onSubmit={handleCreate}
+    <Routes>
+      <Route
+        path='/'
+        element={
+          <div>
+            <CreateItemForm
+              name={name}
+              price={price}
+              quantity={quantity}
+              error={error}
+              onNameChange={setName}
+              onPriceChange={setPrice}
+              onQuantityChange={setQuantity}
+              onSubmit={handleCreate}
+            />
+
+            <button onClick={() => setEditMode(!editMode)}>
+              {editMode ? 'Done' : 'Edit'}
+            </button>
+
+            <ItemList
+              items={items}
+              editMode={editMode}
+              onUpdateQuantity={handleUpdateQuantity}
+              onArchive={handleArchive}
+            />
+
+            <Link to="/archived">View archived items</Link>
+         </div>
+        }
       />
 
-      <ItemList
-        items={items}
-        onUpdateQuantity={handleUpdateQuantity}
-        onArchive={handleArchive}
+      <Route
+        path='/archived'
+        element={<ArchivedPage items={archivedItems} onUnarchive={handleUnarchive} />}
       />
+    </Routes>
 
-      <button onClick={handleToggleArchived}>
-        {showArchived ? 'Hide archived items' : 'Show archived items'}
-      </button>
 
-      {showArchived && (
-        <ArchivedItemList items={archivedItems} onUnarchive={handleUnarchive} />
-      )}
-    </div>
+    
   );
 }
 
