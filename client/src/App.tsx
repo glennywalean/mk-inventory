@@ -22,6 +22,7 @@ function App() {
   const [quantity, setQuantity] = useState('');
   const [archivedItems, setArchivedItems] = useState<Item[]>([]);
   const [editMode, setEditMode] = useState(false);
+  const [search, setSearch] = useState('');
 
   // --- Function to Load Items --- //
   async function loadItems() {
@@ -108,6 +109,11 @@ function App() {
     return <p>Loading...</p>;
   }
 
+  // Filter the loaded items (frontend only), refresh every keystroke. case insensitive
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <Routes>
       <Route
@@ -141,9 +147,17 @@ function App() {
                 </button>
               </div>
 
+              <input
+                placeholder="Search items"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="mb-3 w-full rounded-md border border-neutral-300 px-3 py-2 text-base"
+              />
+
               <ItemList
-                items={items}
+                items={filteredItems}
                 editMode={editMode}
+                emptyMessage={search ? `No items matching "${search}"` : `No items yet.`} //no match = no items matching, empty = no items yet.
                 onUpdateQuantity={handleUpdateQuantity}
                 onArchive={handleArchive}
               />
@@ -155,7 +169,7 @@ function App() {
                 View archived items
               </Link>
             </div>
-         </div>
+        </div>
         }
       />
 

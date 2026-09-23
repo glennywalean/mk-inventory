@@ -3,13 +3,14 @@ import type { Item } from '../types';
 type ItemListProps = {
   items: Item[];
   editMode: boolean;
+  emptyMessage: string; 
   onUpdateQuantity: (id: string, newQuantity: number) => void;
   onArchive: (id: string) => void;
 };
 
-function ItemList({ items, editMode, onUpdateQuantity, onArchive }: ItemListProps) {
+function ItemList({ items, editMode, emptyMessage, onUpdateQuantity, onArchive }: ItemListProps) {
   if (items.length === 0) {
-    return <p className="text-neutral-500">No items yet.</p>;
+    return <p className="text-neutral-500">{emptyMessage}</p>;
   }
 
   return (
