@@ -29,7 +29,10 @@ export async function createItem(data: {
 }
 
 // Updates an item's quantity.
-export async function updateQuantity(id: string, quantity: number): Promise<Response> {
+export async function updateQuantity(
+  id: string,
+  quantity: number
+): Promise<Response> {
   return fetch(`${BASE_URL}/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -37,12 +40,28 @@ export async function updateQuantity(id: string, quantity: number): Promise<Resp
   });
 }
 
+// update name, price.
+export async function updateItem(
+  id: string,
+  data: { name: string; priceCents: number }
+): Promise<Response> {
+  return fetch(`${BASE_URL}/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
 // Archives an item.
-export async function archiveItem(id: string): Promise<Response> {
+export async function archiveItem(
+  id: string
+): Promise<Response> {
   return fetch(`${BASE_URL}/${id}/archive`, { method: 'PATCH' });
 }
 
 // Unarchives an item.
-export async function unarchiveItem(id: string): Promise<Response> {
+export async function unarchiveItem(
+  id: string
+): Promise<Response> {
   return fetch(`${BASE_URL}/${id}/unarchive`, { method: 'PATCH' });
 }

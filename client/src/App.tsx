@@ -7,11 +7,13 @@ import {
   getArchivedItems,
   createItem,
   updateQuantity,
+  updateItem,
   archiveItem,
   unarchiveItem,
 } from './api';
 import CreateItemForm from './components/CreateItemForm';
 import ItemList from './components/ItemList';
+
 
 function App() {
   const [items, setItems] = useState<Item[]>([]);
@@ -100,6 +102,24 @@ function App() {
     loadItems();
   }
 
+  // --- Function to Update Item's Details (Name and Price) --- //
+  async function handleUpdateItem(id: string, data: { name: string; priceCents: number }
+  ): Promise<void> {
+    const res = await updateItem(id, data);
+
+    if (!res.ok) {
+      const body = await res.json();
+      throw new Error(body.error ?? 'Could not update item');
+    }
+
+    const updatedItem: Item = await res.json();
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === updatedItem.id ? updatedItem : item
+      )
+    );
+  }
+
   useEffect(() => { // when loaded, run this
     loadItems();
     loadArchivedItems();
@@ -160,6 +180,7 @@ function App() {
                 emptyMessage={search ? `No items matching "${search}"` : `No items yet.`} //no match = no items matching, empty = no items yet.
                 onUpdateQuantity={handleUpdateQuantity}
                 onArchive={handleArchive}
+                onUpdateItem={handleUpdateItem}
               />
 
               <Link

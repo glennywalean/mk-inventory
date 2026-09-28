@@ -39,21 +39,43 @@ app.post('/api/items', async (req, res) => {
   res.json(item); // Return the new item as a JSON response
 });
 
-// --- Update existing item's quantity--- //
-app.patch('/api/items/:id', async (req, res) => { //
-  const { quantity } = req.body;
+// --- Update existing item's quantity, name, price--- //
+app.patch('/api/items/:id', async (req, res) => {
+  const { quantity, name, priceCents } = req.body;
+  const data: { quantity?: number; name?: string; priceCents?: number } = {};
 
-  if (typeof quantity !== 'number' || quantity < 0) { // Validate that quantity is a non-negative number
-    return res.status(400).json({ error: 'quantity must be a non-negative number' });
+  if (quantity !== undefined) { // quantity error handling
+    if (typeof quantity !== 'number' || quantity < 0) {
+      return res.status(400).json({ error: 'quantity must be a non-negative number' });
+    }
+    data.quantity = quantity; // update the quantity var
   }
 
-  try { // Attempt to update the item, if it doesn't exist, catch a 404 error
+  if (name !== undefined) { // name error handling
+    if (typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'name is required' });
+    }
+    data.name = name.trim(); // trim() and update the name var
+  }
+
+  if (priceCents !== undefined) { // price error handling
+    if (!Number.isInteger(priceCents) || priceCents < 0) {
+      return res.status(400).json({ error: 'priceCents must be a non-negative integer' });
+    }
+    data.priceCents = priceCents; // update the price var
+  }
+
+  if (Object.keys(data).length === 0) { // make sure the field is not empty
+    return res.status(400).json({ error: 'at least one field is required' });
+  }
+
+  try {
     const item = await prisma.item.update({
-      where: { id: req.params.id },
-      data: { quantity }
+      where: { id: req.params.id }, //target the update into the selected item's id
+      data,
     });
     res.json(item);
-  } catch (err) {
+  } catch {
     res.status(404).json({ error: 'Item not found' });
   }
 });
