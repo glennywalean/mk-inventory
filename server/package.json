@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsx --test src/**/*.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^26.5.0",
     "prisma": "^5.22.0",
+    "supertest": "^7.0.0",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   }

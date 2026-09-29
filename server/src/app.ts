@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
@@ -6,8 +7,31 @@ import { auth } from 'express-oauth2-jwt-bearer';
 const app = express();
 export const prisma = new PrismaClient();
 
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_ORIGIN ?? 'http://localhost:5174')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+// Public health check so deployment and smoke tests can confirm the API is up.
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
+
+// Allow requests only from the configured frontend origin(s).
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
+
+// Protect all API routes with a valid Auth0 JWT.
 app.use('/api', auth({
   issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL!,
   audience: process.env.AUTH0_AUDIENCE!,
