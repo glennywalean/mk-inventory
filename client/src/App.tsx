@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, Link} from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import ArchivedPage from './pages/ArchivedPage';
 import type { Item } from './types';
 import {
@@ -16,6 +17,7 @@ import ItemList from './components/ItemList';
 
 
 function App() {
+  const { isAuthenticated, isLoading: authLoading, getAccessTokenSilently, loginWithRedirect, logout, user } = useAuth0();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,14 +30,14 @@ function App() {
 
   // --- Function to Load Items --- //
   async function loadItems() {
-    const data = await getItems();
+    const data = await getItems(() => getAccessTokenSilently());
     setItems(data);
     setLoading(false);
   }
 
   // --- Function to Load Archived Items --- //
   async function loadArchivedItems() {
-    const data = await getArchivedItems();
+    const data = await getArchivedItems(() => getAccessTokenSilently());
     setArchivedItems(data);
   }
 
@@ -47,7 +49,7 @@ function App() {
       name,
       priceCents: Math.round(Number(price) * 100),
       quantity: Number(quantity),
-    });
+    }, () => getAccessTokenSilently());
 
     if (!res.ok) {
       const body = await res.json();
@@ -63,7 +65,7 @@ function App() {
 
   // --- Function to Archive Item --- //
   async function handleArchive(itemId: string) {
-    const res = await archiveItem(itemId);
+    const res = await archiveItem(itemId, () => getAccessTokenSilently());
 
     if (!res.ok) {
       const body = await res.json();
@@ -77,7 +79,7 @@ function App() {
 
   // --- Function to UnArchive Item --- //
   async function handleUnarchive(itemId: string) {
-    const res = await unarchiveItem(itemId);
+    const res = await unarchiveItem(itemId, () => getAccessTokenSilently());
 
     if (!res.ok) {
       const body = await res.json();
@@ -91,7 +93,7 @@ function App() {
 
   // --- Function to Update Quantity --- //
   async function handleUpdateQuantity(id: string, newQuantity: number) {
-    const res = await updateQuantity(id, newQuantity);
+    const res = await updateQuantity(id, newQuantity, () => getAccessTokenSilently());
 
     if (!res.ok) {
       const body = await res.json();
@@ -105,7 +107,7 @@ function App() {
   // --- Function to Update Item's Details (Name and Price) --- //
   async function handleUpdateItem(id: string, data: { name: string; priceCents: number }
   ): Promise<void> {
-    const res = await updateItem(id, data);
+    const res = await updateItem(id, data, () => getAccessTokenSilently());
 
     if (!res.ok) {
       const body = await res.json();
@@ -120,10 +122,40 @@ function App() {
     );
   }
 
-  useEffect(() => { // when loaded, run this
-    loadItems();
-    loadArchivedItems();
-  }, []);
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    Promise.all([
+      getItems(() => getAccessTokenSilently()),
+      getArchivedItems(() => getAccessTokenSilently()),
+    ]).then(([activeItems, archived]) => {
+      setItems(activeItems);
+      setArchivedItems(archived);
+      setLoading(false);
+    }).catch(() => {
+      setError('Could not load inventory. Please try signing in again.');
+      setLoading(false);
+    });
+  }, [getAccessTokenSilently, isAuthenticated]);
+
+  if (authLoading) {
+    return <p className="p-4 text-center">Checking your session...</p>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="mx-auto max-w-lg p-6 text-center">
+        <h1 className="mb-3 text-2xl font-semibold text-neutral-900">Manado Kitchen Inventory</h1>
+        <p className="mb-5 text-neutral-600">Sign in to manage inventory.</p>
+        <button
+          onClick={() => loginWithRedirect()}
+          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white active:bg-neutral-700"
+        >
+          Log in
+        </button>
+      </main>
+    );
+  }
 
   if (loading) {
     return <p>Loading...</p>;
@@ -135,7 +167,17 @@ function App() {
   );
 
   return (
-    <Routes>
+    <>
+      <header className="mx-auto flex max-w-lg items-center justify-between px-4 pt-4 text-sm">
+        <span className="truncate text-neutral-600">{user?.email}</span>
+        <button
+          onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+          className="font-medium text-neutral-700 underline"
+        >
+          Log out
+        </button>
+      </header>
+      <Routes>
       <Route
         path='/'
         element={
@@ -198,7 +240,8 @@ function App() {
         path='/archived'
         element={<ArchivedPage items={archivedItems} onUnarchive={handleUnarchive} />}
       />
-    </Routes>
+      </Routes>
+    </>
 
 
     

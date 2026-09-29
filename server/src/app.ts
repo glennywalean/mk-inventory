@@ -1,12 +1,17 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import { auth } from 'express-oauth2-jwt-bearer';
 
 const app = express();
 export const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
+app.use('/api', auth({
+  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL!,
+  audience: process.env.AUTH0_AUDIENCE!,
+}));
 
 // --- Fetch all items from the database --- //
 app.get('/api/items', async (req, res) => { // Fetch all items from the database

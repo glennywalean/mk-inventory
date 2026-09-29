@@ -13,7 +13,8 @@
     "@prisma/client": "^5.22.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "express-oauth2-jwt-bearer": "^1.10.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

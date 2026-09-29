@@ -1,16 +1,35 @@
 import type { Item } from './types'; //match names with the backend model
 
 const BASE_URL = `${import.meta.env.VITE_API_URL}/api/items`;
+type AccessTokenGetter = () => Promise<string | undefined>;
+
+async function apiFetch(
+  url: string,
+  getAccessToken: AccessTokenGetter,
+  options: RequestInit = {}
+): Promise<Response> {
+  const accessToken = await getAccessToken();
+  if (!accessToken) throw new Error('An access token is required to call the inventory API.');
+
+  const headers = new Headers(options.headers);
+  headers.set('Authorization', `Bearer ${accessToken}`);
+
+  return fetch(url, {
+    ...options,
+    headers,
+    cache: options.cache ?? 'no-store',
+  });
+}
 
 // Fetches active items.
-export async function getItems(): Promise<Item[]> {
-  const res = await fetch(BASE_URL, { cache: 'no-store' });
+export async function getItems(getAccessToken: AccessTokenGetter): Promise<Item[]> {
+  const res = await apiFetch(BASE_URL, getAccessToken);
   return res.json();
 }
 
 // Fetches archived items.
-export async function getArchivedItems(): Promise<Item[]> {
-  const res = await fetch(`${BASE_URL}?archived=true`, { cache: 'no-store' }); //archived items query
+export async function getArchivedItems(getAccessToken: AccessTokenGetter): Promise<Item[]> {
+  const res = await apiFetch(`${BASE_URL}?archived=true`, getAccessToken); //archived items query
   return res.json();
 }
 
@@ -20,8 +39,8 @@ export async function createItem(data: {
   name: string;
   priceCents: number;
   quantity: number;
-}): Promise<Response> {
-  return fetch(BASE_URL, {
+}, getAccessToken: AccessTokenGetter): Promise<Response> {
+  return apiFetch(BASE_URL, getAccessToken, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -31,9 +50,10 @@ export async function createItem(data: {
 // Updates an item's quantity.
 export async function updateQuantity(
   id: string,
-  quantity: number
+  quantity: number,
+  getAccessToken: AccessTokenGetter
 ): Promise<Response> {
-  return fetch(`${BASE_URL}/${id}`, {
+  return apiFetch(`${BASE_URL}/${id}`, getAccessToken, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ quantity }),
@@ -43,9 +63,10 @@ export async function updateQuantity(
 // update name, price.
 export async function updateItem(
   id: string,
-  data: { name: string; priceCents: number }
+  data: { name: string; priceCents: number },
+  getAccessToken: AccessTokenGetter
 ): Promise<Response> {
-  return fetch(`${BASE_URL}/${id}`, {
+  return apiFetch(`${BASE_URL}/${id}`, getAccessToken, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -54,14 +75,16 @@ export async function updateItem(
 
 // Archives an item.
 export async function archiveItem(
-  id: string
+  id: string,
+  getAccessToken: AccessTokenGetter
 ): Promise<Response> {
-  return fetch(`${BASE_URL}/${id}/archive`, { method: 'PATCH' });
+  return apiFetch(`${BASE_URL}/${id}/archive`, getAccessToken, { method: 'PATCH' });
 }
 
 // Unarchives an item.
 export async function unarchiveItem(
-  id: string
+  id: string,
+  getAccessToken: AccessTokenGetter
 ): Promise<Response> {
-  return fetch(`${BASE_URL}/${id}/unarchive`, { method: 'PATCH' });
+  return apiFetch(`${BASE_URL}/${id}/unarchive`, getAccessToken, { method: 'PATCH' });
 }
